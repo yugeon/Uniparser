@@ -1,0 +1,5 @@
+vendor/*
+base.sqlite
+.composer.json.swp
+composer.phar
+index.php

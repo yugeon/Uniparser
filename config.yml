@@ -1,0 +1,32 @@
+General:
+    StartUrl: 'http://example.com'
+    DoSleepAfterEachPage: 0
+    LogEachPage: false
+
+ContentDelivery:
+    AllowedContentTypes: ['text/html', 'application/xhtml+xml']
+    LockHost: true
+
+    CurlOptions:
+        ReturnTransfer: true
+        FoollowLocation: true
+        MaxRedirs: 5
+        ConnectTimeout: 20
+        Timeout: 120
+
+    Proxy:
+        UseProxy: false
+        Proxy: "http://example.com/"
+        ProxyPort: 8080
+        ProxyUserPwd: "[username]:[password]"
+        
+DataStore:
+    database:
+        driver: sqlite
+        host:
+        database: './base.sqlite'
+        username:
+        password:
+        charset: utf8
+        collation: utf8_unicode_ci
+        prefix:

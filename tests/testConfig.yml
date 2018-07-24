@@ -1,0 +1,35 @@
+General:
+    StartUrl: 'http://example.com'
+    
+UrlGenerators:
+    testField1: testValue1
+    testField2: testValue2
+
+ContentDelivery:
+    aa: bb
+
+    AllowedContentTypes: ['text/html', 'application/xhtml+xml']
+
+    CurlOptions:
+        ReturnTransfer: true
+        FoollowLocation: true
+        MaxRedirs: 5
+        ConnectTimeout: 20
+        Timeout: 120
+
+    Proxy:
+        UseProxy: false
+        Proxy: 'http://example.com/'
+        ProxyPort: 8080
+        ProxyUserPwd: '[username]:[password]'
+
+DataStore:
+    database:
+        driver: sqlite
+        host: 
+        database: ':memory:'
+        username: 
+        password: 
+        charset: utf8
+        collation: utf8_unicode_ci
+        prefix: 
