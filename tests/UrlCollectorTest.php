@@ -173,7 +173,10 @@ class UrlCollectorTest extends TestCase {
             'http://examle.com/3',
         ];
         $this->testClass->add($urls);
-        $matcherFn = function($url, $condition) {
+
+        $isMatcherCalled = false;
+        $matcherFn = function($url, $condition) use(&$isMatcherCalled) {
+            $isMatcherCalled = true;
             $length = strlen($condition);
             return $length === 0 || (substr($url, -$length) === $condition);
         };
@@ -183,6 +186,7 @@ class UrlCollectorTest extends TestCase {
         $actualUrl = $this->testClass->next($matcherFn, $matcherArgs);
         $this->assertEquals($needleUrl, $actualUrl);
         $this->assertEquals(1, $this->testClass->counts());
+        $this->assertTrue($isMatcherCalled);
     }
 
     function testCanIterateAcrossAllUrls() {
@@ -222,6 +226,37 @@ class UrlCollectorTest extends TestCase {
 
         $this->assertEquals(3, $urlCounter);
         $this->assertEquals(0, $this->testClass->counts());
+    }
+
+    function testCanGetSetConfig() {
+        $config = new Yugeon\Uniparser\Config(__DIR__ . '/testConfig.yml');
+        $this->testClass->setConfig($config->getConfig('UrlCollector'));
+        $this->assertEquals($config->getConfig('UrlCollector.FollowLinks'),
+                $this->testClass->getConfig()->getConfig('FollowLinks'));
+    }
+
+    function testCanCreateWithConfigInConstructor() {
+        $config = ['aa' => 'bb'];
+        $this->testClass = new Yugeon\Uniparser\UrlCollector(null, $config);
+        $this->assertEquals($config['aa'], $this->testClass->getConfig()->getConfig('aa'));
+    }
+
+    function testTakeIntoSettingFollowLink() {
+        $this->testClass->setConfig(['FollowLinks' => false]);
+
+        $urls = [
+            'http://examle.com/',
+            'http://examle.com/1',
+            'http://examle.com/2',
+            'http://examle.com/3',
+        ];
+        $this->testClass->add($urls);
+
+        $url = $this->testClass->next();
+        $this->assertEquals($urls[0], $url);
+
+        $actualUrl = $this->testClass->next();
+        $this->assertNull($actualUrl);
     }
 
 }

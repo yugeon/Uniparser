@@ -56,12 +56,39 @@ class ParserTest extends TestCase {
         $this->assertCount(5, $actualUrls);
     }
 
+    public function testCanGetAllUrlsWithinSelector() {
+        $this->setContent();
+
+        $selector = 'div.block > a';
+        $actualUrls = $this->testClass->getAllUrls($selector);
+
+        $this->assertCount(2, $actualUrls);
+    }
+
     public function testCanGetTextContentBySelector() {
         $this->setContent();
 
         $selector = 'div.description';
         $actualText = $this->testClass->filterText($selector);
         $this->assertEquals('bla bla description', $actualText);
+    }
+
+    public function testCanGetCollectionBySelector() {
+        $this->setContent();
+
+        $selector = 'div.sizes > .size *:first-child';
+        $actualCollection = $this->testClass->filterCollection($selector);
+        $this->assertTrue(is_array($actualCollection));
+        $this->assertCount(3, $actualCollection);
+    }
+
+    public function testMustReturEmptyArrayIfCollectionEmpty() {
+        $this->setContent();
+
+        $selector = 'div.sizes_not_exist > .size *:first-child';
+        $actualCollection = $this->testClass->filterCollection($selector);
+        $this->assertTrue(is_array($actualCollection));
+        $this->assertCount(0, $actualCollection);
     }
 
     public function testCanGetAttrValueBySelector() {
@@ -86,5 +113,30 @@ class ParserTest extends TestCase {
     public function testMustClearCrawlerBeforeSetContent() {
         $this->setContent();
         $this->testClass->setContent('new content');
+        $this->assertEquals('new content', $this->testClass->getContent());
     }
+
+    public function testCanApplyRegexpToUrl() {
+        $url = 'https://www.example.com/ru/maio-tahity-97506.html';
+        $pattern = '/(\d+)\.html$/i';
+        $actual = $this->testClass->regexp($pattern, $url);
+        $this->assertEquals('97506', $actual);
+    }
+
+    public function testMustReturnEmptyStringIfRegexpNotMatch() {
+        $url = 'https://www.example.com/ru/maio-tahity-97506.html';
+        $pattern = '/([a-b]+)\.html$/i';
+        $actual = $this->testClass->regexp($pattern, $url);
+        $this->assertEquals('', $actual);
+    }
+
+    public function testCanApplyRegexpToContent() {
+        $this->setContent();
+
+        $pattern = '/div\s+id="id(\d+)"/i';
+
+        $actualText = $this->testClass->regexp($pattern, $this->testClass->getContent());
+        $this->assertEquals('2344', $actualText);
+    }
+
 }

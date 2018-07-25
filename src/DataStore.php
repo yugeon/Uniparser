@@ -78,7 +78,7 @@ class DataStore {
     public function save($url, $data) {
         $this->_initDb();
 
-        $parsedUrlsModel = new ParsedUrlsModel();
+        $parsedUrlsModel = ParsedUrlsModel::firstOrNew(['url' => $url]);
         $parsedUrlsModel->url = $url;
         $parsedUrlsModel->setData($data);
         $parsedUrlsModel->markAsCompleted();

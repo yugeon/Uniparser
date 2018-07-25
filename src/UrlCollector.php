@@ -14,10 +14,16 @@ class UrlCollector {
     private $urls = [];
     private $processedUrls = [];
     private $unsuitableUrls = [];
+    private $config;
+    private $isNextAlreadyCall = false;
 
-    function __construct($urlNormalizer = null) {
+    function __construct($urlNormalizer = null, $config = null) {
         if ($urlNormalizer === null) {
             $urlNormalizer = new Normalizer();
+        }
+
+        if ($config) {
+            $this->setConfig($config);
         }
 
         $this->urlNormalizer = $urlNormalizer;
@@ -61,6 +67,13 @@ class UrlCollector {
 
     public function next(callable $matcherFn = null, ...$matcherArgs) {
 
+        $isFollowLinks = $this->getConfig()->getConfig('FollowLinks', true);
+        if (!$isFollowLinks && $this->isNextAlreadyCall) {
+            return null;
+        }
+
+        $this->isNextAlreadyCall = true;
+
         $url = array_shift($this->urls);
         if (null === $url) {
             return null;
@@ -71,7 +84,7 @@ class UrlCollector {
             return $this->next($matcherFn, ...$matcherArgs);
         }
 
-        if ($matcherFn && !$matcherFn($url, ...$matcherArgs)) {
+        if (is_callable($matcherFn) && !call_user_func($matcherFn, $url, ...$matcherArgs)) {
             $this->unsuitableUrls[] = $url;
             return $this->next($matcherFn, ...$matcherArgs);
         }
@@ -94,6 +107,32 @@ class UrlCollector {
         $urlHost = parse_url($url, PHP_URL_HOST);
 
         return $urlHost === $this->lockUrl;
+    }
+
+    /**
+     * 
+     * @param Config $config
+     */
+    public function setConfig($config) {
+        if (!($config instanceof Config)) {
+            if (is_array($config)) {
+                $configObj = new Config();
+                $config = $configObj->setConfig($config);
+            } else {
+                throw new \Exception('Config not instance of Yugeon\Uniparser\Config');
+            }
+        }
+        $this->config = $config;
+
+        return $this;
+    }
+
+    function getConfig() {
+        if (!$this->config) {
+            $this->setConfig([]);
+        }
+
+        return $this->config;
     }
 
 }

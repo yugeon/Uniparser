@@ -71,4 +71,21 @@ class DataStoreTest extends \PHPUnit_Extensions_Database_TestCase {
         $this->testClass->save($url, $arbitaryData);
         $this->assertEquals(1, $this->getConnection()->getRowCount($tableName));
     }
+
+    public function testCanReplaceExistenDataByUrl() {
+        $arbitaryData = [
+            'sku' => '123123',
+            'name' => 'DKjfkfk kjdkfdj',
+            'price' => 23.12,
+        ];
+        $url = 'http://example.com/id/122';
+        $tableName = $this->testClass->getTableName();
+
+        $this->assertEquals(0, $this->getConnection()->getRowCount($tableName));
+        $this->testClass->save($url, $arbitaryData);
+        $this->assertEquals(1, $this->getConnection()->getRowCount($tableName));
+
+        $this->testClass->save($url, $arbitaryData);
+        $this->assertEquals(1, $this->getConnection()->getRowCount($tableName));
+    }
 }

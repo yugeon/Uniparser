@@ -44,10 +44,10 @@ class Parser {
      *
      * @return array of string urls
      */
-    public function getAllUrls() {
+    public function getAllUrls($selector = 'a') {
         $urls = [];
 
-        $links = $this->crawler->filter('a')->links();
+        $links = $this->crawler->filter($selector)->links();
         foreach ($links as $link) {
             $urls[] = $link->getUri();
         }
@@ -79,6 +79,17 @@ class Parser {
         return false;
     }
 
+    public function filterCollection($selector) {
+        $filtered = $this->filter($selector)->each(function (Crawler $node, $i) {
+            return $node->text();
+        });
+
+        if (count($filtered) > 0) {
+            return $filtered;
+        }
+        return [];
+    }
+
     public function isExist($selector) {
         $filtered = $this->filter($selector);
         if ($filtered->count() > 0) {
@@ -86,6 +97,16 @@ class Parser {
         }
 
         return false;
+    }
+
+    public function regexp($pattern, $subject) {
+        $matches = [];
+        
+        if (1 === preg_match($pattern, $subject, $matches)) {
+            return $matches[1];
+        }
+
+        return '';
     }
 
 }

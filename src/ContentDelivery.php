@@ -37,7 +37,7 @@ class ContentDelivery {
         $allowedContentTypes = $this->config->getConfig('AllowedContentTypes', 'text/html');
         $this->setContentTypes($allowedContentTypes);
 
-        $lockHost = $this->config->getConfgi('LockHost');
+        $lockHost = $this->config->getConfig('LockHost');
         if ($lockHost) {
             $this->lockHost($lockHost);
         }
@@ -46,6 +46,7 @@ class ContentDelivery {
     private function tuneCurl() {
         $config = $this->getConfig()->getConfig('CurlOptions');
 
+        $this->curl->setOpt(CURLOPT_USERAGENT, $config['UserAgent']);
         $this->curl->setOpt(CURLOPT_RETURNTRANSFER, $config['ReturnTransfer']);
         $this->curl->setOpt(CURLOPT_FAILONERROR, true);
         $this->curl->setOpt(CURLOPT_FOLLOWLOCATION, $config['FoollowLocation']);
