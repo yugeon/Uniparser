@@ -4,12 +4,20 @@ namespace Yugeon\Uniparser;
 
 class Uniparser {
     private $config;
+    /**
+     *
+     * @var UrlCollector
+     */
     private $urlCollector;
     private $contentDelivery;
+    /**
+     *
+     * @var Parser
+     */
     private $parser;
     private $dataStore;
     private $parsingCallback;
-    private $urlMatcherCallback;
+    private $urlsStateStore;
 
     public function __construct($configPath) {
         if (!$configPath) {
@@ -17,21 +25,19 @@ class Uniparser {
         }
 
         $this->config = new Config($configPath);
-        $this->init();
     }
 
-    function init($urlCollector = null, $contentDelivery = null, $parser = null, $dataStore = null) {
+    function init() {
+
         if (!$this->config->isValid()) {
             throw new Exception('Config not valid');
         }
 
         // TODO: url generator
-        $this->urlCollector = $urlCollector ?: 
-                new UrlCollector(null, $this->config->getConfig('UrlCollector'));
-        $this->contentDelivery = $contentDelivery ?:
-                new ContentDelivery($this->config->getConfig('ContentDelivery'));
-        $this->parser = $parser ?: new Parser();
-        $this->dataStore = $dataStore ?: new DataStore($this->config->getConfig('DataStore'));
+        $this->initUrlCollector();
+        $this->initContentDelivery();
+        $this->initParser();
+        $this->initDataStore();
     }
 
     function setUrlCollector($urlCollector) {
@@ -39,8 +45,79 @@ class Uniparser {
         return $this;
     }
 
-    
+    public function getUrlCollector() {
+        return $this->urlCollector;
+    }
+
+    public function initUrlCollector($urlCollector = null) {
+        if (!$this->urlCollector) {
+            $this->urlCollector = $urlCollector ?:
+                new UrlCollector(null, $this->config->getConfig('UrlCollector'));
+        }
+
+        // store urls state for rerun
+        if ($this->config->getConfig('UrlCollector.SaveState')) {
+            $urlsStateStore = $this->urlsStateStore ?:
+                    new UrlsStateStore($this->config->getConfig('DataStore'));
+            $this->urlCollector->setUrlsStateStore($urlsStateStore);
+        }
+    }
+
+    function getParser() {
+        return $this->parser;
+    }
+
+    function setParser($parser) {
+        $this->parser = $parser;
+        return $this;
+    }
+
+    function initParser($parser = null) {
+        if (!$this->parser) {
+            $this->parser = $parser ?: new Parser();
+        }
+    }
+
+    function getContentDelivery() {
+        return $this->contentDelivery;
+    }
+
+    function setContentDelivery($contentDelivery) {
+        $this->contentDelivery = $contentDelivery;
+        return $this;
+    }
+
+    function initContentDelivery($contentDelivery = null) {
+        if (!$this->contentDelivery) {
+            $this->contentDelivery = $contentDelivery ?:
+                new ContentDelivery($this->config->getConfig('ContentDelivery'));
+        }
+    }
+
+    function setUrlsStateStore($urlsStateStore) {
+        $this->urlsStateStore = $urlsStateStore;
+        return $this;
+    }
+
+    function getDataStore() {
+        return $this->dataStore;
+    }
+
+    function setDataStore($dataStore) {
+        $this->dataStore = $dataStore;
+        return $this;
+    }
+
+    function initDataStore($dataStore = null) {
+        if (!$this->dataStore) {
+            $this->dataStore = $dataStore ?: new DataStore($this->config->getConfig('DataStore'));
+        }
+    }
+
+
     public function run($startUrl = '') {
+        $this->init();
+
         if (!$startUrl) {
             $startUrl = $this->config->getConfig('General.StartUrl');
 
@@ -51,10 +128,12 @@ class Uniparser {
 
         $this->urlCollector->setStartUrl($startUrl);
 
-        // TODO: from config
-        $limit = 10;
-        while ($limit > 0 && ($url = $this->urlCollector->next($this->urlMatcherCallback))) {
-            $limit--;
+        $limit = $this->config->getConfig('General.LimitUrls', 0);
+        $limit = $limit > 0 ? $limit : PHP_INT_MAX;
+        $counter = 0;
+
+        while ($counter < $limit && ($url = $this->urlCollector->next())) {
+            $counter++;
 
             try {
                 $content = $this->contentDelivery->getContent($url);
@@ -69,6 +148,8 @@ class Uniparser {
 
                 if ($data) {
                     $this->dataStore->save($url, $data);
+                } else {
+                    $this->urlCollector->rejectProcessedUrl();
                 }
             } catch (Exception $exc) {
                 echo $exc->getTraceAsString();
@@ -83,7 +164,7 @@ class Uniparser {
     }
 
     public function setUrlMatcherCallback(callable $callback) {
-        $this->urlMatcherCallback = $callback;
+        $this->urlCollector->setUrlMatcherCallback($callback);
         return $this;
     }
 

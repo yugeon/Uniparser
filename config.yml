@@ -2,13 +2,16 @@ General:
     StartUrl: 'http://example.com'
     DoSleepAfterEachPage: 0
     LogEachPage: false
+    LimitUrls: 10 # -1 disable limit
 
 UrlCollector:
     FollowLinks: true
+    SaveState: true
+    RerunOnFails: true
+    LockHost: true
 
 ContentDelivery:
     AllowedContentTypes: ['text/html', 'application/xhtml+xml']
-    LockHost: true
 
     CurlOptions:
         # pretending to be a google bot

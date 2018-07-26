@@ -11,7 +11,6 @@ use \Curl\Curl;
 class ContentDelivery {
 
     private $curl;
-    private $lockedHost;
     private $config;
     private $allowedContentTypes;
 
@@ -36,11 +35,6 @@ class ContentDelivery {
 
         $allowedContentTypes = $this->config->getConfig('AllowedContentTypes', 'text/html');
         $this->setContentTypes($allowedContentTypes);
-
-        $lockHost = $this->config->getConfig('LockHost');
-        if ($lockHost) {
-            $this->lockHost($lockHost);
-        }
     }
 
     private function tuneCurl() {
@@ -94,26 +88,7 @@ class ContentDelivery {
         return $this;
     }
 
-    private function isAllowedUrl($url, $allowed_url_schemes = ['http', 'https']) {
-        $valid_url = filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED | FILTER_FLAG_HOST_REQUIRED) !== false;
-        if ($valid_url) {
-            $parsedUrl = parse_url($url);
-
-            if ($this->lockedHost && $parsedUrl['host'] !== $this->lockedHost) {
-                return false;
-            }
-
-            return in_array($parsedUrl['scheme'], $allowed_url_schemes, true);
-        }
-        $valid_ip = filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false;
-        return $valid_ip;
-    }
-
     public function getContent($url) {
-
-        if (!$this->isAllowedUrl($url)) {
-            return false;
-        }
 
         $this->curl->get($url);
         if ($this->curl->error) {
@@ -126,12 +101,6 @@ class ContentDelivery {
 
         return $this->curl->response;
         
-    }
-
-    public function lockHost($lockHost) {
-        $urlHost = parse_url($lockHost, PHP_URL_HOST);
-        $this->lockedHost = $urlHost;
-        return $this;
     }
 
     public function setContentTypes($contentTypes) {

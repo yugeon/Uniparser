@@ -2,7 +2,6 @@
 
 namespace Yugeon\Uniparser\DataStore;
 
-
 /**
  * Description of ParsedUrlsModel
  *

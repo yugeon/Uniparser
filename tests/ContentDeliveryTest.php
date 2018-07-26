@@ -61,32 +61,11 @@ class ContentDeliveryTest extends TestCase {
         $this->testClass = new ContentDelivery($config, $this->curl);
     }
 
-    function testDontAllowGetContentFromExternalUrls() {
-        $baseUrl = 'http://example.com';
-        $this->testClass->lockHost($baseUrl);
-        $externalUrl = 'http://google.com';
-
-        $actualContent = $this->testClass->getContent($externalUrl);
-        $this->assertFalse($actualContent);
-    }
-
-    function testAllowGetContentFromLockedUrls() {
-        $baseUrl = 'https://google.com';
-        $this->testClass->lockHost($baseUrl);
-        $externalUrl = 'https://google.com/adsf';
-
-        $actualContent = $this->testClass->getContent($externalUrl);
-
-        $this->assertGreaterThan(0, strlen($actualContent));
-        $this->assertEquals($this->testContent, $actualContent);
-    }
-
     /**
      * @expectedException Exception
      */
     function testMustThrowExceptionIfCannotGetContent() {
         $baseUrl = 'https://google.com';
-        $this->testClass->lockHost($baseUrl);
         $externalUrl = 'https://google.com/adsf';
 
         $this->curl->error = true;
@@ -96,14 +75,11 @@ class ContentDeliveryTest extends TestCase {
         $actualContent = $this->testClass->getContent($externalUrl);
     }
 
-    // TODO: custom user agent
-
     function testTargetMustBeAllowedMimeTypes() {
         $contentTypes = ['text/html'];
         $this->testClass->setContentTypes($contentTypes);
 
         $baseUrl = 'https://google.com';
-        $this->testClass->lockHost($baseUrl);
 
         $actualContent = $this->testClass->getContent($baseUrl);
         $this->assertEquals($this->testContent, $actualContent);
@@ -114,7 +90,6 @@ class ContentDeliveryTest extends TestCase {
      */
     function testMustThrowExceptionIfNotAllowedContentType() {
         $baseUrl = 'https://google.com';
-        $this->testClass->lockHost($baseUrl);
 
         $this->curl->responseHeaders = [
             'Content-Type' => 'text/javascript'

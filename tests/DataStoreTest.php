@@ -17,7 +17,7 @@ class DataStoreTest extends \PHPUnit_Extensions_Database_TestCase {
         $config = new \Yugeon\Uniparser\Config(__DIR__ . '/testConfig.yml');
         $this->testClass->setConnConfig($config->getConfig('DataStore.database'));
 
-        $this->testClass->_initDb();
+        $this->testClass->_initDb($force = true);
         $this->testClass->createSchema();
         self::$pdo = $this->testClass->getPdoForTest();
     }

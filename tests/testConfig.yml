@@ -1,5 +1,6 @@
 General:
     StartUrl: 'http://example.com'
+    LimitUrls: 10 # -1 disable limit
     
 UrlGenerators:
     testField1: testValue1
@@ -7,6 +8,9 @@ UrlGenerators:
 
 UrlCollector:
     FollowLinks: true
+    SaveState: true
+    RerunOnFails: true
+    LockHost: true
 
 ContentDelivery:
     aa: bb
